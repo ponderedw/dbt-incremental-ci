@@ -73,6 +73,7 @@ class DbtHelper:
                 modified_nodes.add(line)
 
             logger.info(f"Found {len(modified_nodes)} modified nodes")
+            logger.info(f"Modified nodes: {modified_nodes}")
             return modified_nodes
 
         except subprocess.CalledProcessError as e:
