@@ -11,8 +11,8 @@ class DbtHelper:
     """Helper class for interacting with dbt and parsing manifests."""
 
     def __init__(self, dbt_project_dir: str, prod_manifest_path: str):
-        self.dbt_project_dir = Path(dbt_project_dir)
-        self.prod_manifest_path = Path(prod_manifest_path)
+        self.dbt_project_dir = Path(dbt_project_dir).resolve()
+        self.prod_manifest_path = Path(prod_manifest_path).resolve()
         self.prod_manifest = self._load_manifest(self.prod_manifest_path)
 
     def _load_manifest(self, manifest_path: Path) -> Dict[str, Any]:
@@ -76,8 +76,10 @@ class DbtHelper:
             return modified_nodes
 
         except subprocess.CalledProcessError as e:
-            logger.error(f"dbt ls command failed: {e.stderr}")
-            raise RuntimeError(f"Failed to run dbt ls: {e.stderr}")
+            error_msg = e.stderr if e.stderr else e.stdout if e.stdout else str(e)
+            logger.error(f"dbt ls command failed: {error_msg}")
+            logger.error(f"Command: {' '.join(cmd)}")
+            raise RuntimeError(f"Failed to run dbt ls: {error_msg}")
 
     def filter_incremental_and_snapshots(
         self,
