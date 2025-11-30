@@ -84,19 +84,16 @@ class TableCopier:
             try:
                 if dialect in ['postgresql', 'redshift']:
                     conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {target_schema}"))
-                    conn.commit()
                 elif dialect == 'trino':
                     # Trino might not support IF NOT EXISTS depending on connector
                     try:
                         conn.execute(text(f"CREATE SCHEMA {target_schema}"))
-                        conn.commit()
                     except Exception:
                         # Schema might already exist
                         pass
                 else:
                     # Generic approach
                     conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {target_schema}"))
-                    conn.commit()
 
                 logger.info(f"Ensured schema {target_schema} exists")
             except Exception as e:
@@ -211,11 +208,9 @@ class TableCopier:
                     statements = [s.strip() for s in query.split(';') if s.strip()]
                     for statement in statements:
                         conn.execute(text(statement))
-                    conn.commit()
                 else:
                     # Execute as single query
                     conn.execute(text(query))
-                    conn.commit()
 
             logger.info(f"Successfully copied {source_schema}.{source_table}")
             return {
