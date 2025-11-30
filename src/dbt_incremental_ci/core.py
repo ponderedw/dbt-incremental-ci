@@ -154,7 +154,7 @@ class DbtIncrementalCI:
 
         # Create temporary file for manifest
 
-        temp_path = 'prod_manifest.json'
+        temp_path = 'manifest.json'
 
         # Save manifest to temp file
         client.save_manifest_to_file(job_id, temp_path, run_id)
