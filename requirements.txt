@@ -1,0 +1,10 @@
+# Core dependencies
+sqlalchemy>=1.4.0
+click>=8.0.0
+requests>=2.25.0
+
+# Database drivers (optional - install what you need)
+# psycopg2-binary>=2.9.0  # PostgreSQL
+# redshift-connector>=2.0.0  # Redshift
+# google-cloud-bigquery>=3.0.0  # BigQuery
+# trino>=0.300.0  # Trino
