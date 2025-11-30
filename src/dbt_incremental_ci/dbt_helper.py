@@ -34,7 +34,7 @@ class DbtHelper:
 
         cmd = [
             "dbt", "ls",
-            "--select", "state:modified",
+            "--select", "state:modified+",
             "--defer",
             "--state", str(self.prod_manifest_path.parent),
             "--project-dir", str(self.dbt_project_dir),
