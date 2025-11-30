@@ -33,7 +33,11 @@ class DbtHelper:
         logger.info("Running dbt ls to detect modified nodes...")
 
         cmd = [
-            f"dbt ls --select state:modified --defer --state {self.prod_manifest_path.parent} --project-dir {self.dbt_project_dir}",
+            "dbt", "ls",
+            "--select", "state:modified",
+            "--defer",
+            "--state", str(self.prod_manifest_path.parent),
+            "--project-dir", str(self.dbt_project_dir)
         ]
 
         try:
@@ -69,8 +73,6 @@ class DbtHelper:
                 modified_nodes.add(line)
 
             logger.info(f"Found {len(modified_nodes)} modified nodes")
-            if modified_nodes and logger.isEnabledFor(logging.DEBUG):
-                logger.debug(f"Modified nodes: {', '.join(sorted(modified_nodes))}")
             return modified_nodes
 
         except subprocess.CalledProcessError as e:
