@@ -153,14 +153,8 @@ class DbtIncrementalCI:
         client = DbtCloudClient(api_token, account_id)
 
         # Create temporary file for manifest
-        temp_file = tempfile.NamedTemporaryFile(
-            mode='w',
-            suffix='.json',
-            prefix='dbt_manifest_',
-            delete=False
-        )
-        temp_path = temp_file.name
-        temp_file.close()
+
+        temp_path = './prod_manifest.json'
 
         # Save manifest to temp file
         client.save_manifest_to_file(job_id, temp_path, run_id)
