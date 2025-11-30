@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dbt-incremental-ci"
-version = "0.1.0a9"
+version = "0.1.0a10"
 description = ""
 authors = ["Ponder"]
 readme = "README.md"
