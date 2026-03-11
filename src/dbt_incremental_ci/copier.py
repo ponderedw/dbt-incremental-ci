@@ -63,41 +63,44 @@ class TableCopier:
         # No custom suffix found, use CI schema as-is
         return self.ci_schema
 
-    def _create_schema_if_not_exists(self, schema_name: str = None):
-        """Create CI schema if it doesn't exist."""
-        target_schema = schema_name or self.ci_schema
-
+    def _create_schema_if_not_exists(self, schema_name: str):
+        """Create a single schema if it doesn't exist."""
         if self.dry_run:
-            logger.info(f"[DRY RUN] Would create schema: {target_schema}")
+            logger.info(f"[DRY RUN] Would create schema: {schema_name}")
             return
 
         dialect = self._get_dialect_name()
 
-        # BigQuery uses datasets, not schemas
         if dialect == 'bigquery':
-            # For BigQuery, schema creation is handled differently
-            # Usually the schema (dataset) should already exist
-            logger.info(f"BigQuery detected - ensure dataset {target_schema} exists")
+            logger.info(f"BigQuery detected - ensure dataset {schema_name} exists")
             return
 
         with self.engine.connect() as conn:
             try:
                 if dialect in ['postgresql', 'redshift']:
-                    conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {target_schema}"))
+                    conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}"))
                 elif dialect == 'trino':
-                    # Trino might not support IF NOT EXISTS depending on connector
                     try:
-                        conn.execute(text(f"CREATE SCHEMA {target_schema}"))
+                        conn.execute(text(f"CREATE SCHEMA {schema_name}"))
                     except Exception:
-                        # Schema might already exist
                         pass
                 else:
-                    # Generic approach
-                    conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {target_schema}"))
-
-                logger.info(f"Ensured schema {target_schema} exists")
+                    conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}"))
+                logger.info(f"Ensured schema {schema_name} exists")
             except Exception as e:
-                logger.warning(f"Could not create schema: {e}")
+                logger.warning(f"Could not create schema {schema_name}: {e}")
+
+    def _ensure_schemas(self, nodes: List[Dict[str, Any]]):
+        """Collect distinct target schemas from all nodes and create them sequentially."""
+        seen = set()
+        for node in nodes:
+            source_schema = node.get('schema')
+            if source_schema:
+                target_schema = self._compute_target_schema(source_schema)
+                seen.add(target_schema)
+
+        for schema in seen:
+            self._create_schema_if_not_exists(schema)
 
     def _build_copy_query(
         self,
@@ -186,9 +189,6 @@ class TableCopier:
                 'query': query.strip()
             }
 
-        # Create the target schema if it doesn't exist
-        self._create_schema_if_not_exists(target_schema)
-
         logger.info(f"Copying table: {source_schema}.{source_table} -> {target_schema}.{source_table}")
 
         try:
@@ -239,6 +239,9 @@ class TableCopier:
         if not nodes:
             logger.info("No tables to copy")
             return []
+
+        # Create all required schemas sequentially before any parallel work
+        self._ensure_schemas(nodes)
 
         results = []
 
