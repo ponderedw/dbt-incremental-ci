@@ -86,6 +86,7 @@ class TableCopier:
                         pass
                 else:
                     conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}"))
+                conn.commit()
                 logger.info(f"Ensured schema {schema_name} exists")
             except Exception as e:
                 logger.warning(f"Could not create schema {schema_name}: {e}")
